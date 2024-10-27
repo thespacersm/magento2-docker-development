@@ -1,0 +1,72 @@
+services:
+  php:
+    build:
+      context: "./.docker/apache2/php${M2DD_PHP_VERSION-7.4}"
+      dockerfile: Dockerfile
+    volumes:
+      - "${M2DD_MAGE_PATH-./}:/var/www/html"
+      - ".docker/apache2/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf"
+      - ".docker/apache2/apache2.conf:/etc/apache2/apache2.conf"
+    ports:
+      - "${M2DD_PHP_PORT-8085}:80"
+    environment:
+      - MEMORY_LIMIT=${M2DD_MEMORY_LIMIT-8000M}
+      - MAX_EXECUTION_TIME=${M2DD_MAX_EXECUTION_TIME-300}
+      - UPLOAD_MAX_FILESIZE=${M2DD_UPLOAD_MAX_FILESIZE-100M}
+      - POST_MAX_SIZE=${M2DD_POST_MAX_SIZE-8000M}
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+      - opensearch
+
+  mysql:
+    image: mysql:5.7
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    platform: "${M2DD_MYSQL_PLATFORM-linux/x86_64}"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${M2DD_MYSQL_ROOT_PASSWORD-123456}
+      MYSQL_DATABASE: ${M2DD_MYSQL_DATABASE-magento2}
+      MYSQL_USER: ${M2DD_MYSQL_USER-magento2}
+      MYSQL_PASSWORD: ${M2DD_MYSQL_PASSWORD-123456}
+    ports:
+      - "${M2DD_MYSQL_PORT-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:6.0
+    restart: unless-stopped
+    ports:
+      - "${M2DD_REDIS_PORT-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.16.0
+    restart: unless-stopped
+    ports:
+      - "${M2DD_OPENSEARCH_PORT-9200}:9200"
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${M2DD_OPENSEARCH_INITIAL_ADMIN_PASSWORD-123456}"
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - .docker/opensearch/config/opensearch.yml:/usr/share/opensearch/config/opensearch.yml
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
