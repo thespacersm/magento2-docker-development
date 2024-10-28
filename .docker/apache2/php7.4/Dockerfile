@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:7.4-apache
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
@@ -48,7 +48,7 @@ RUN docker-php-ext-install mysqli \
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype && docker-php-ext-install gd
 RUN docker-php-ext-configure pcntl --enable-pcntl && docker-php-ext-install pcntl
 RUN yes '' | pecl install imagick && docker-php-ext-enable imagick
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install xdebug-3.1.6 && docker-php-ext-enable xdebug
 
 RUN echo "memory_limit=8000M" > /usr/local/etc/php/conf.d/memory_limit.ini
 RUN echo "max_execution_time=300" > /usr/local/etc/php/conf.d/max_execution_time.ini
