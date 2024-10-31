@@ -16,6 +16,12 @@ Copy the environment file `.env.example` to `.env` and set the environment varia
 cat .env.example >> /path/to/magento2/.env
 ```
 
+If you need to install it, you can run:
+
+```bash
+php bin/magento setup:install --db-host="mysql" --db-user="magento2" --db-name="magento2" --db-password="magento2" --search-engine=opensearch --opensearch-host="opensearch" --opensearch-port="9200" --opensearch-index-prefix="magento2" --session-save="redis" --session-save-redis-host="redis" --session-save-redis-port="6379" --session-save-redis-db=0     --session-save-redis-max-concurrency=20     --cache-backend=redis     --cache-backend-redis-server=redis     --cache-backend-redis-db=1     --cache-backend-redis-port=6379     --page-cache=redis     --page-cache-redis-server=redis     --page-cache-redis-db=2     --page-cache-redis-port=6379
+```
+
 Edit in app/etc/env.php the database configuration.
 
 ```php
